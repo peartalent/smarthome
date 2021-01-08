@@ -1,2 +1,5 @@
-# smarthome
-Ứng dụng iot nhà thông minh, sử dụng mqtt, retrofit để demo thiết bị thu không khí, lịch sử của ra vào, bật tắt bóng đèn...
+# THƯ MỤC TỔNG HỢP NHÓM 8
+
+- Server
+- Mobile app for end user
+- Software for ESP8266

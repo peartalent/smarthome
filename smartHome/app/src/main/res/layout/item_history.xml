@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_marginTop="5dp"
+    android:layout_height="wrap_content">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/textTime"
+            android:text="20/10/2020 10:30"
+            android:paddingLeft="20dp"
+            android:textSize="18sp"
+            android:gravity="center|left"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"/>
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:id="@+id/imageLock"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ic_baseline_lock_open_24" />
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
+

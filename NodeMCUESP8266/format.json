@@ -1,0 +1,97 @@
+[
+    // ESP Receive
+    // Assign device  -  Assign_topic
+    {
+        "assignList": [
+            {
+                "mssid" : 1,
+                "id": 1, //Manage by server
+                "type": 1, //ex LED 1, AIR 2, NFC 3
+                "pin": 5
+            },
+            {
+                "mssid" : 2,
+                "id": 2,
+                "type": 2,
+                "pin": 7
+            }
+        ],
+        "permissions":[
+            4324234324,
+            10043242342340,
+            4234324234
+        ]
+
+    },
+    //deassign device
+    {
+        "deassignList": [
+            {
+                "mssid" : 1,
+                "id": 1, //Manage by server
+            }
+        ]
+    },
+    {
+        "getDevices" : true
+    },
+    //Control device - Cmd_topic
+    {
+        "mssid" : 1,
+        "id": 1,
+        "cmd": 1, //command corresponds to device type. ex. LED 01 is on
+        "value" : 500 //optional
+    },
+
+//---------------------------------------------------------------------------
+    
+    //ESP send
+    //Request device assignment - Assign_topic
+    {
+        "requestAssign" : true
+    },
+    //Devive monitor, status - Info_topic
+    {
+        "id" : 3,
+        "value" : 0.3,
+        "duration" : 500, //optional
+        "permission" : "granted"/"denied",
+        "time_stamp" : 123432
+    },
+    //Response - Response_topic
+    {
+        "mssid":1,
+        "resp_type":"error",
+        "mss":"This is message"
+    },
+    {
+        "mssid":2,
+        "resp_type":"success",
+        "mss":"This is message"
+    },
+    //Assign_topic
+    {
+        "deviceList": [
+            {
+                "id": 1, 
+                "type": 1, 
+                "pin": 5
+            },
+            {
+                "id": 2,
+                "type": 2,
+                "pin": 7
+            },
+            {
+                "id": 2,
+                "type": 3,
+                "pin": 7
+            }
+        ],
+        "permissions":[
+            4324234324,
+            10043242342340,
+            4234324234
+        ]
+    }
+]

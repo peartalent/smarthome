@@ -1,0 +1,443 @@
+// #include <Arduino.h>
+// #include <ArduinoJson.h>
+// #include <ESP8266WiFi.h>
+// #include <PubSubClient.h>
+// #include "Timer.h"
+// #include "Task.h"
+// #include "MFRC522.h"
+// #include "SPI.h"
+
+// char ssid[50];
+// char password[50];
+// const char *mqtt_server = "broker.hivemq.com";
+// const int mqtt_port = 1883;
+// const char *assign_topic = "sownAssign";
+// const char *cmd_topic = "sownCmd";
+// const char *info_topic = "sownInfo";
+// const char *error_topic = "sownError";
+
+// const char *getAssign = "{\"requestAssign\" : true}";
+
+// #define NFC_RST_PIN D3
+
+// #define MSG_BUFFER_SIZE (500)
+// #define NUMS_PIN 18
+// //for assign array
+// #define TYPE 0 //LED : 1, AIR : 2, NFC : 3
+// #define LIGHT 1
+// #define MONITOR 2
+// #define NFC 3
+// //LIGHT
+// #define LIGHT_OFF LOW
+// #define LIGHT_ON HIGH
+
+// #define ID 1
+
+// #define JSON_SIZE 1000
+
+// int assign[NUMS_PIN][2]; //assign[i][TYPE] - device type assign[i][TYPE] in pin i
+//                          //assign[i][ID] - device id assign[i][ID] in pin i
+// Task *tasks[NUMS_PIN];
+// // unsigned long taskDurations[NUMS_PIN];
+// MFRC522 nfc[NUMS_PIN];
+
+// //-----------------------------------------------------------
+// constexpr uint8_t RST_PIN = D3; // Configurable, see typical pin layout above
+// constexpr uint8_t SS_PIN = D4;  // Configurable, see typical pin layout above
+// MFRC522 rfid(SS_PIN, RST_PIN);
+// MFRC522::MIFARE_Key key;
+// String tag;
+
+// //--------------------------------------------------------------
+
+// StaticJsonDocument<JSON_SIZE> doc;
+
+// WiFiClient espClient;
+// PubSubClient client(espClient);
+// unsigned long lastMsg = 0;
+// char msg[MSG_BUFFER_SIZE];
+// char *json = new char[JSON_SIZE];
+// String serialRead;
+
+// void publishError(int mssid, char *errorMss)
+// {
+//   char *mess = new char[500];
+//   sprintf(mess, "{\"mssid\":%d,\"err\":%s}", mssid, errorMss);
+//   client.publish(error_topic, mess);
+// }
+
+// int getPin(int id)
+// {
+//   //  if (assign[i] != NULL && strcmp(assign[i], device) == 0)
+//   //    return i;
+//   for (int i = 0; i < NUMS_PIN; i++)
+//   {
+//     if (assign[i][ID] == id)
+//       return i;
+//   }
+//   return NULL;
+// }
+
+// bool isPinAssigned(int pin)
+// {
+//   return assign[pin][ID] != 0;
+// }
+
+// void deAssignPin(int pin)
+// {
+//   assign[pin][ID] = 0;
+//   assign[pin][TYPE] = 0;
+//   if (tasks[pin] != nullptr)
+//   {
+//     tasks[pin]->~Task();
+//     tasks[pin] = nullptr;
+//   }
+// }
+
+// void deAssignId(int mssid, int id)
+// {
+//   // memcpy(assign[pin], device, sizeof(device));
+//   int pin = getPin(id);
+//   if (pin == NULL)
+//     publishError(mssid, "This ID is not assigned");
+//   else
+//     deAssignPin(pin);
+// }
+
+// void sendMonitorInfo(int id, int mssid)
+// {
+//   int pin = getPin(id);
+//   int type = assign[pin][TYPE];
+//   unsigned long now = millis();
+//   if (type == MONITOR)
+//   {
+//     float h = analogRead(pin);
+//     if (isnan(h))
+//     {
+//       Serial.println("Failed to read from MQ-135 sensor!");
+//       if (mssid != NULL)
+//         publishError(mssid, "Read air monotor failed");
+//     }
+//     else
+//     {
+//       float gasLevel = h / 1023 * 100;
+//       Serial.print("Gas Level: ");
+//       Serial.println(gasLevel);
+//       memset(json, 0, JSON_SIZE);
+//       sprintf(json, "{\"id\":%d, \"value\": %f, \"time_stamp\":%d}", id, (h / 1023 * 100), now);
+//       client.publish(info_topic, json);
+//       if (gasLevel > 50)
+//       {
+//         Serial.println("Fire Fire");
+//         Serial.println("SKRTTTTTTTTTT SKRTTTTTTTTTT");
+//       }
+//     }
+//   }
+//   else if (type == LIGHT)
+//   {
+//     int state = digitalRead(pin);
+//     Serial.print("LIGHT: ");
+//     Serial.println(state);
+//     memset(json, 0, JSON_SIZE);
+//     sprintf(json, "{\"id\":%d, \"value\": %d, \"time_stamp\":%d}", id, state, now);
+//     client.publish(info_topic, json);
+//   }
+//   else if (type == NFC)
+//   {
+//     Serial.println("Read NFC");
+//     if (nfc[0].PICC_ReadCardSerial())
+//     {
+//       for (byte i = 0; i < 4; i++)
+//       {
+//         tag += nfc[0].uid.uidByte[i];
+//       }
+//       Serial.println(tag);
+//       nfc[0].PICC_HaltA();
+//       nfc[0].PCD_StopCrypto1();
+//       Serial.println("Clear Done!");
+//       memset(json, 0, JSON_SIZE);
+//       sprintf(json, "{\"id\":%d, \"value\": %d, \"time_stamp\":%d}", id, tag.toInt(), now);
+//       tag = "";
+//       client.publish(info_topic, json);
+//     }
+//   }
+// }
+// void sendMonitorInfo(int id)
+// {
+//   sendMonitorInfo(id, NULL);
+// }
+
+// void waitCardInsert(int id)
+// {
+//   if (nfc[0].PICC_IsNewCardPresent())
+//   {
+//     sendMonitorInfo(id);
+//   }
+//   // else
+//   // {
+//   //   Serial.println("No insert");
+//   // }
+// }
+// void assignPin(int pin, int type, int id)
+// {
+//   // memcpy(assign[pin], device, sizeof(device));
+//   assign[pin][ID] = id;
+//   assign[pin][TYPE] = type;
+
+//   if (type == LIGHT)
+//     pinMode(pin, OUTPUT);
+//   else if (type == MONITOR)
+//   {
+//     pinMode(pin, INPUT);
+//     Task *monitorTask = new Task(id, 1000, sendMonitorInfo);
+//     tasks[pin] = monitorTask;
+//   }
+//   else if (type == NFC)
+//   {
+//     // pinMode(pin, INPUT);
+//     // MFRC522 rfid(pin, RST_PIN);
+//     // rfid.PCD_Init();
+//     nfc[pin] = rfid;
+//     // Task *nfcTask = new Task(id, 1, waitCardInsert);
+//     // tasks[pin] = nfcTask;
+//   }
+// }
+
+// void assignPin(int pin, int type, int id, int mssid)
+// {
+//   int checkExist = getPin(id);
+//   if (checkExist != NULL)
+//   {
+//     char *err = new char[200];
+//     sprintf(err, "ID %d is assigned to pin %d", id, checkExist);
+//     publishError(mssid, err);
+//   }
+//   else if (isPinAssigned(pin))
+//   {
+//     char *err = new char[200];
+//     sprintf(err, "Pin %d is assigned to ID %d", pin, assign[pin][ID]);
+//     publishError(mssid, err);
+//   }
+//   else
+//   {
+//     assignPin(pin, type, id);
+//   }
+// }
+
+// void setup_wifi()
+// {
+//   delay(10);
+//   // We start by connecting to a WiFi network
+//   Serial.println();
+//   Serial.print("Connecting to ");
+//   Serial.println(ssid);
+
+//   WiFi.mode(WIFI_STA);
+//   WiFi.begin(ssid, password);
+
+//   while (WiFi.status() != WL_CONNECTED)
+//   {
+//     delay(500);
+//     Serial.print(".");
+//   }
+
+//   randomSeed(micros());
+
+//   Serial.println("");
+//   Serial.println("WiFi connected");
+//   Serial.println("IP address: ");
+//   Serial.println(WiFi.localIP());
+// }
+
+// char *makeDeviceListJson()
+// {
+//   doc.clear();
+//   JsonObject root = doc.to<JsonObject>();
+//   JsonArray arr = root.createNestedArray("deviceList");
+//   for (int i = 0; i < NUMS_PIN; i++)
+//   {
+//     if (assign[i][ID] != 0)
+//     {
+//       JsonObject device = arr.createNestedObject();
+//       device["id"] = assign[i][ID];
+//       device["type"] = assign[i][TYPE];
+//       device["pin"] = i;
+//     }
+//   }
+//   serializeJson(doc, json, JSON_SIZE);
+//   return json;
+// }
+
+// void callback(char *topic, byte *payload, unsigned int length)
+// {
+//   Serial.print("Message arrived [");
+//   Serial.print(topic);
+//   Serial.print("] ");
+
+//   Serial.println();
+//   deserializeJson(doc, payload);
+//   if (strcmp(topic, cmd_topic) == 0)
+//   {
+//     int id = doc["id"];
+//     int cmd = doc["cmd"];
+//     int mssid = doc["mssid"];
+//     //
+//     Serial.print("ID: ");
+//     Serial.print(id);
+//     Serial.println();
+//     Serial.print("CMD: ");
+//     Serial.print(cmd);
+//     Serial.println();
+
+//     int pin = getPin(id);
+//     int type = assign[pin][TYPE];
+
+//     if (type == LIGHT)
+//     {
+//       if (cmd <= LIGHT_ON)
+//       {
+//         int command = (cmd == 0) ? LIGHT_OFF : LIGHT_ON;
+//         Serial.println(isPinAssigned(pin));
+//         digitalWrite(pin, command);
+//       }
+//       sendMonitorInfo(assign[pin][ID], mssid);
+//     }
+//     else if (type == MONITOR)
+//     {
+//       sendMonitorInfo(assign[pin][ID], mssid);
+//     }
+//     else if (type == NFC)
+//     {
+//     }
+//     else
+//     {
+//       publishError(mssid, "Device not exist");
+//     }
+//   }
+//   else if (strcmp(topic, assign_topic) == 0)
+//   {
+//     // JsonObject object = doc.to<JsonObject>();
+//     if (doc.containsKey("assignList"))
+//     {
+//       JsonArray deviceArray = doc["assignList"];
+//       for (JsonObject device : deviceArray)
+//       {
+//         assignPin(device["pin"], device["type"], device["id"], device["mssid"]);
+//       }
+//     }
+//     else if (doc.containsKey("deassignList"))
+//     {
+//       JsonArray deviceArray = doc["deassignList"];
+//       for (JsonObject device : deviceArray)
+//       {
+//         deAssignId(device["mssid"], device["id"]);
+//       }
+//     }
+//     else if (doc.containsKey("getDevices"))
+//     {
+//       client.publish(assign_topic, makeDeviceListJson());
+//     }
+//   }
+// }
+
+// void reconnect()
+// {
+//   // Loop until we're reconnected
+//   while (!client.connected())
+//   {
+//     Serial.print("Attempting MQTT connection...");
+//     // Create a random client ID
+//     String clientId = "ESP8266Client-";
+//     clientId += String(random(0xffff), HEX);
+//     // Attempt to connect
+//     if (client.connect(clientId.c_str()))
+//     {
+//       Serial.println("connected");
+//       client.subscribe(assign_topic);
+//       client.subscribe(cmd_topic);
+//       // Publish an announcement...
+//       client.publish(assign_topic, getAssign);
+//     }
+//     else
+//     {
+//       Serial.print("failed, rc=");
+//       Serial.print(client.state());
+//       Serial.println(" try again in 5 seconds");
+//       // Wait 5 seconds before retrying
+//       delay(5000);
+//     }
+//   }
+// }
+
+// void setup()
+// {
+//   Serial.begin(9600);
+//   pinMode(BUILTIN_LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
+
+//   Serial.print("\nSSID: ");
+//   while (!Serial.available())
+//     ;
+//   serialRead = Serial.readString();
+//   int length = serialRead.length();
+//   serialRead.toCharArray(ssid, 50);
+//   ssid[length - 1] = '\0';
+//   Serial.print(ssid);
+//   Serial.print("\nPASSWORD: ");
+//   while (!Serial.available())
+//     ;
+//   serialRead = Serial.readString();
+//   length = serialRead.length();
+//   serialRead.toCharArray(password, 50);
+//   password[length - 1] = '\0';
+//   // Serial.print(password);
+
+//   setup_wifi();
+//   client.setServer(mqtt_server, mqtt_port);
+//   client.setCallback(callback);
+//   // assignPin(A0, MONITOR, 69); //Built in MQ135
+//   assignPin(D4, NFC, 96);
+
+//   Timer::getInstance()->initialize();
+
+//   SPI.begin();     // Init SPI bus
+//   rfid.PCD_Init(); // Init MFRC522 card
+//   nfc[0] = rfid;
+//   Task *nfcTask = new Task(96, 100, waitCardInsert);
+//   tasks[2] = nfcTask;
+// }
+
+// void loop()
+// {
+//   if (!client.connected())
+//   {
+//     reconnect();
+//   }
+//   client.loop();
+
+//   // waitCardInsert(96);
+
+//   // if (rfid.PICC_IsNewCardPresent())
+//   // {
+//   //   if (rfid.PICC_ReadCardSerial())
+//   //   {
+//   //     for (byte i = 0; i < 4; i++)
+//   //     {
+//   //       tag += rfid.uid.uidByte[i];
+//   //     }
+//   //     Serial.println(tag);
+//   //     tag = "";
+//   //     rfid.PICC_HaltA();
+//   //     rfid.PCD_StopCrypto1();
+//   //   }
+//   // }
+
+//   Timer::getInstance()->update();
+//   for (int pin = 0; pin < NUMS_PIN; pin++)
+//   {
+//     if (tasks[pin] != nullptr)
+//     {
+//       tasks[pin]->update();
+//     }
+//   }
+//   Timer::getInstance()->reset();
+// }

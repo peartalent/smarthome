@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/addCard"
+        android:title= "Thêm thẻ"/>
+    <item android:id="@+id/getCards"
+        android:title= "Danh sách thẻ"/>
+    <item android:id="@+id/changeDarkTheme"
+        android:title= "Đổi giao diện"/>
+    <item android:id="@+id/logout"
+        android:title= "Đăng xuất"/>
+</menu>

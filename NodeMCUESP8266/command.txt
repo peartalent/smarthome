@@ -1,0 +1,16 @@
+{
+    "mssid" : 1,
+    "id": 1,
+    "cmd": COMMAND
+    "value" : double //optional
+}
+Đèn (và những thứ bật tắt :v)
+    SW_ON 1 Bật đèn
+    SW_OFF 0 Tắt đèn
+    SW_CHECK_STATE 2 Kiểm tra trạng thái
+Đo không khí (và các thể loại đo khác)
+    MN_GET_VALUE 1 Lấy thông số
+    MN_CHANGE_DURATION 2 thay đổi chu kỳ lấy dữ liệu
+Cửa
+    PR_ADD_CARD 2 Thêm thẻ
+    PR_DELETE_CARD 3 Xoá thẻ

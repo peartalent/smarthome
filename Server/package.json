@@ -1,0 +1,20 @@
+{
+  "name": "btl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "mqtt.js",
+  "dependencies": {
+    "dateformat": "^4.0.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mqtt": "^4.2.4",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

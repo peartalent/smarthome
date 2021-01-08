@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">My SmartHouse IoT8</string>
+    <string name="title_dark">Đổi nền tối</string>
+    <string name="title_while">Đổi nền sáng</string>
+</resources>
